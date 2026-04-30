@@ -1,0 +1,59 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum Role {
+  SUPER_ADMIN
+  ADMIN
+  VENDOR
+  MANAGER
+  CASHIER
+}
+
+enum VendorStatus {
+  PENDING_VERIFICATION
+  ACTIVE
+  SUSPENDED
+}
+
+model User {
+  id           String   @id @default(uuid())
+  name         String
+  email        String   @unique
+  phone        String?
+  passwordHash String
+  role         Role     @default(VENDOR)
+  vendorId     String?
+  vendor       Vendor?  @relation(fields: [vendorId], references: [id])
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([vendorId])
+  @@index([email])
+}
+
+model Vendor {
+  id           String       @id @default(uuid())
+  businessName String
+  ownerName    String
+  phone        String?
+  email        String?      @unique
+  address      String?
+  businessType String?
+  status       VendorStatus @default(PENDING_VERIFICATION)
+  users        User[]
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+
+  @@index([status])
+}
